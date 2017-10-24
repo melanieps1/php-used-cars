@@ -13,6 +13,7 @@
 		
 		function getDb() {
 			// `pg` in `pg_connect` stands for Postgres
+			// the below line is BAD (but easy for class)!  On the job, do not write password out here, use an env_variable in the future.
 			$db = pg_connect("host=localhost port=5432 dbname=cars_dev user=carsuser password=carscarscars");
 			return $db;
 		}
@@ -26,7 +27,7 @@
 				JOIN makes ma ON mo.make_id = ma.id
 				JOIN colors c ON i.color_id = c.id;
 			");
-			// Now getting all of the records in one chunk - this is a pattern that we will repeat a lot!!!
+			// Now getting all of the records in one chunk - this is a PATTERN that we will repeat a lot!!!
 			return pg_fetch_all($request);
 		}
 
@@ -40,11 +41,11 @@
 		<tr>
 			<th>ID</th>
 			<th>Year</th>
-			<th>Mileage</th>
 			<th>Make</th>
 			<th>Model</th>
+			<th>Colors</th>
 			<th>Doors</th>
-			<th>Color</th>
+			<th>Mileage</th>
 		</tr>
 
 	<?php
@@ -52,23 +53,33 @@
 	// var_dump(getinventory());
 
 	// This foreach loop is cycling through the whole chunk of data we are getting back from the query and going through it line by line
+		// foreach (getInventory() as $car) {
+		// 	// var_dump($car);
+		// 	// $car is an associative array
+
+		// 	echo "<tr>";
+
+		// // This foreach loop is going through the data field by field
+		// 	foreach ($car as $field => $value) {
+		// 		// echo "$field is $value\n";
+		// 		echo "<td>$value</td>";
+		// 	}
+		// 	echo "</tr>\n";
+		// }
+
 		foreach (getInventory() as $car) {
-			// var_dump($car);
-			// $car is an associative array
-
 			echo "<tr>";
+				echo "<td>" . $car['id'] . "</td>";
+				echo "<td>" . $car['year'] . "</td>";
+				echo "<td>" . $car['make'] . "</td>";
+				echo "<td>" . $car['model'] . "</td>";
+				echo "<td>" . $car['color'] . "</td>";
+				echo "<td>" . $car['doors'] . "</td>";
+				echo "<td>" . $car['mileage'] . "</td>";
+			echo "<tr>\n";
+		}		
 
-		// This foreach loop is going through the data field by field
-			foreach ($car as $field => $value) {
-				// echo "$field is $value\n";
-				echo "<td>$value</td>";
-			}
-
-			echo "</tr>\n";
-
-		}
-
-		?>
+	?>
 
 	</table>
 
