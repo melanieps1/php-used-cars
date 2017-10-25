@@ -1,3 +1,7 @@
+<?php
+	error_reporting(E_ALL);
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,19 +18,50 @@
 		function getDb() {
 			// `pg` in `pg_connect` stands for Postgres
 			// the below line is BAD (but easy for class)!  On the job, do not write password out here, use an env_variable in the future.
-			$db = pg_connect("host=localhost port=5432 dbname=cars_dev user=carsuser password=carscarscars");
+			// $db = pg_connect("host=localhost port=5432 dbname=cars_dev user=carsuser password=carscarscars");
+			// return $db;
+
+			// Heroku Deploy Stuff
+
+			// $raw_url = 'postgres://rlhyjdtnnxsmka:3efac858a4af26947c4258e29ec35ec5e1385c9e943486dbe5c309c6a3229a88@ec2-23-21-92-251.compute-1.amazonaws.com:5432/d8emegapfvhmsh';
+
+			// $url = parse_url($raw_url);
+
+			if (file_exists('.env')) {
+				require __DIR__ . '/vendor/autoload.php';
+				$dotenv = new Dotenv\Dotenv(__DIR__);
+				$dotenv->load();
+			}
+
+			$url = parse_url(getenv("DATABASE_URL"));
+
+			// var_dump($url);
+
+			$db_port = $url['port'];
+			$db_host = $url['host'];
+			$db_user = $url['user'];
+			$db_pass = $url['pass'];
+			$db_name = substr($url['path'], 1);
+
+			$db = pg_connect(
+			"host=" . $db_host . 
+			" port=" . $db_port . 
+			" dbname=" . $db_name . 
+			" user=" . $db_user . 
+			" password=" . $db_pass);
 			return $db;
+
 		}
 
 		function getInventory() {
 			// Creating a request for fetching the data
 			$request = pg_query(getDb(), "
-				SELECT i.id, i.year, i.mileage, ma.name as make, mo.name as model, mo.doors, c.name as color
+				SELECT i.id, i.year, i.mileage, ma.name as make, mo.name as model, mo.doors
 				FROM inventory i
 				JOIN models mo ON i.model_id = mo.id
-				JOIN makes ma ON mo.make_id = ma.id
-				JOIN colors c ON i.color_id = c.id;
+				JOIN makes ma ON mo.make_id = ma.id;
 			");
+
 			// Now getting all of the records in one chunk - this is a PATTERN that we will repeat a lot!!!
 			return pg_fetch_all($request);
 		}
@@ -43,7 +78,6 @@
 			<th>Year</th>
 			<th>Make</th>
 			<th>Model</th>
-			<th>Colors</th>
 			<th>Doors</th>
 			<th>Mileage</th>
 		</tr>
@@ -73,7 +107,6 @@
 				echo "<td>" . $car['year'] . "</td>";
 				echo "<td>" . $car['make'] . "</td>";
 				echo "<td>" . $car['model'] . "</td>";
-				echo "<td>" . $car['color'] . "</td>";
 				echo "<td>" . $car['doors'] . "</td>";
 				echo "<td>" . $car['mileage'] . "</td>";
 			echo "<tr>\n";
